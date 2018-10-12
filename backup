@@ -1,0 +1,97 @@
+日期相减( 自然日)
+datetime.datetime.strptime(c.DATE, "%Y-%m-%d")-datetime.datetime.strptime(df['date'][j], "%Y-%m-%d")).days
+计算角度
+math.atan(斜率)*180/math.pi)
+
+
+'''
+rootdir ="C:/share/123/"
+list = os.listdir(rootdir) #列出文件夹下所有的目录与文件
+for i in range(0,len(list)):
+    path = os.path.join(rootdir,list[i])
+    print("INSERT INTO dbo.Whir_U_Content (Title, CategoryID, IsDefault, IsTop, ImageUrl, Content, MetaTitle, MetaKeyword, MetaDesc, RedirectUrl, EnableRedirectUrl, TypeID, SubjectID, State, IsDel, CreateUser) VALUES ('" +list[i][0:len(list[i])-4]+"', NULL, NULL, NULL, NULL, '', '', '', '', '', 0, '35', '0', 0, 0,'admin')")
+'''
+
+#hq.toDB_get_weekdata()
+# print(u.get_hopeDOJI())
+
+# print(u.get_shrink(0))
+# print(u.get_soared(0,'u'))
+# hq.get_com()
+# print("1")
+# hq.toDB_record('get_shrink',u.get_shrink(0),"DAY="+str(c.DAYS)+",SHRINK_P=1.0101")
+# print("2")
+# uod='u'
+# hq.toDB_record('get_soared',u.get_soared(0,uod),"uod ="+uod+",day="+str(c.DAYS)+",m5_10 ="+ str(c.m5_10)+",m10_20 = "+str(c.m10_20)+",TURNOVER="+str(c.TURNOVER)+",VOL="+str(c.VOL)+",UPSH="+str(c.UPSD_RATIO))
+# print("3")
+# d = {"5":"10","10":"15", "15":"20","20":"25","25":"30","30":"9999"}
+# for key,value in d.items():
+#     hq.toDB_record('get_aoi', u.get_aoi(2, top=value, low=key),"low=" + key+",top=" + value+",day="+str(c.DAYS))
+# print("4")
+# uod='d'
+# if(u.get_soared(0,uod) != 'NULL'):
+#     hq.toDB_record('get_soared',u.get_soared(0,uod),"uod ="+uod+",day="+str(c.DAYS)+",m5_10 ="+ str(c.m5_10)+",m10_20 = "+str(c.m10_20)+",TURNOVER="+str(c.TURNOVER)+",VOL="+str(c.VOL)+",DWSH="+str(c.DOWNSD_RATIO))
+# print("5")
+# hq.toDB_record('get_hopeDOJI', u.get_hopeDOJI(), "DOJI=" + str(c.DOJI))
+
+# print("0")
+# hq.toDB_get_periodata('D')
+
+# s = "start ="+c.START+"    end="+c.END
+# lt.lookup(s)
+
+# dfdate=pd.DataFrame(hq._excutesql(c.SQL_TRADEDAY).fetchall())
+# print(hq.get_days('2018-05-08','2018-05-08',dfdate))
+
+#u.get_platform()
+# period = 'M'
+# hq.toDB_record('get_rise', u.get_rise(period),time.strftime('%Y%m',time.localtime())+period)
+
+#hq.toDB_get_periodata('W')
+
+#print(u.get_rise('M'))
+
+# print(ts.get_hist_data('000001',start=c.DATE,end=c.DATE))
+
+# conn = ts.get_apis()
+# #df=ts.bar('000001', conn=conn, freq='D', start_date=c.DATE, end_date=c.DATE,adj='qfq', ma=[5, 10, 20, 30,60,120],factors=['tor', 'vr'])
+# df = ts.bar('000001', conn=conn, freq='D', start_date='2018-07-11', end_date='2018-07-11',adj='qfq')
+# print(df)
+# ts.close_apis(conn)
+
+# print("0")hq.toDB_get_periodata('D')
+#
+# hq.get_kline('D')
+
+# print(nu.get_soared_bar(0,'u'))
+# print(u.get_soared(0,'u'))
+
+# try:
+#     CONS = ts.get_apis()
+#     #command = "ts.bar(row['code'], conn=CONS, freq='D', start_date=c.DATE, end_date=c.DATE, adj = 'qfq',factors=['tor']).to_sql('t_daydata', c.ENGINE, if_exists='append')"
+#     for row in hq._excutesql(c.SQL_CODE):
+#         try:
+#             print(row)
+#             ts.bar(row['code'], conn=CONS, freq='D', start_date='2018-06-27', end_date='2018-06-27', adj='qfq',factors=['tor']).to_sql('t_daydata', c.ENGINE, if_exists='append')
+#         except Exception as e:
+#             print(e)
+#             continue
+# finally:
+#     ts.close_apis(CONS)
+
+#kl.check_record('2018-01-01','2018-07-03')
+#kl.tor_vr('2018-01-01','2018-07-06','300703','')
+# list = ['000151','300113','300560','300620','603200','603499','603722']
+# for code in list:
+#     kl.tor_vr('2018-01-01', '2018-07-05', code, '')
+
+def aaa():
+    for f, t, y in hq._excutesql("select fname,tname,type from t_functionmap where flag = 3 and type =9"):
+        sql = "delete from " + t + " where year =" + str(c.YEAR) + " and quarter=" + str(c.QUARTER)
+        hq._excutesql(sql)
+        sql = "update t_functionmap set flag = 0 where tname ='" + t + "'"
+        hq._excutesql(sql)
+        df = eval(f)(c.YEAR, c.QUARTER)
+        hq.Add_col(df, year=c.YEAR, quarter=c.QUARTER).to_sql(t, c.ENGINE, if_exists='append')
+
+aaa()
