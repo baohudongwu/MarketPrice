@@ -30,7 +30,7 @@ def toDB_pro_dividend():
         if df is None:
             pass
         else:
-            df['ts_code'] =df['ts_code'].map(lambda  x : x[0:6])
+            df['ts_code'] =df['ts_code'].map(c.PRO_CODE_FOMART)
             df.to_sql('t_pro_dividend', c.ENGINE, if_exists='append')
     print("toDB_pro_dividend end " + str(datetime.datetime.now()))
 

@@ -172,7 +172,7 @@ def toDB_cap_tops(date, days):
     df = ts.cap_tops()
     Add_col(df, date=date, days=days).to_sql('t_cap_tops', c.ENGINE, if_exists='append')
 
-#bar接口数据
+#bar接口数据(前复权)
 def toDB_get_periodata(period):
     start = datetime.datetime.now()
     print(start)

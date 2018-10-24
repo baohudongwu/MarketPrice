@@ -6,6 +6,7 @@ ENGINE = create_engine('mysql://root:1@10.16.90.119/hq?charset=utf8')
 #ENGINE = create_engine('mysql://root:root@127.0.0.1/hq?charset=utf8')
 #ENGINE = create_engine('mysql://root:root@114.116.65.109/hq?charset=utf8')
 FORMAT = lambda x: '%.2f' % x
+PRO_CODE_FOMART = lambda  x : x[0:6]
 MA  = [5,10,20,30,60,120]
 
 #"2011-01-01":"2011-12-31","2012-01-01":"2012-12-31","2013-01-01":"2013-12-31",
@@ -13,8 +14,8 @@ MA  = [5,10,20,30,60,120]
 PERIOD={"2018-06-30":"2018-07-31"}
 SQL_TRADEDAY = "SELECT * FROM t_tradeday where isopen =1"
 SQL_CODE = "select code from T_StockBasics order by code"
-#DATE = hq.istradeday(time.strftime('%Y-%m-%d',time.localtime()))
-DATE='2018-09-28'
+DATE = hq.istradeday(time.strftime('%Y-%m-%d',time.localtime()))
+#DATE='2018-09-28'
 #START=(datetime.datetime.now()+datetime.timedelta(days=-4)).strftime('%Y-%m-%d')
 YEAR = 2018
 QUARTER =2
@@ -32,6 +33,7 @@ UPSD_RATIO=0.01
 DOWNSD_RATIO=0.03
 SQL_LASTTRADEDAY = "SELECT max(calendardate) from t_tradeday where  isopen = 1 and calendardate <'"+DATE+"'"
 BEFROE = hq.get_lasttradeday(DAYS)
+####################老接口##############################
 SQL_LONG = "select code from t_hisdata_all where date = '"+DATE+"' and (ma5>ma10 and ma10>ma20) and (ma5/ma10>"+str(m5_10)+" and ma10/ma20>"+str(m10_20)+") and (v_ma5>v_ma10 and v_ma10>v_ma20 )"
 #SQL_LONG = "select code from t_hisdata_all where date = '"+hq.istradeday(DATE)+"' and ma5>ma10 and close > ma5"
 SQL_SHORT ="select code from t_hisdata_all where date = '"+DATE+"' and (ma5>ma10 and ma20>ma5)"
