@@ -34,6 +34,13 @@ def toDB_pro_dividend():
             df.to_sql('t_pro_dividend', c.ENGINE, if_exists='append')
     print("toDB_pro_dividend end " + str(datetime.datetime.now()))
 
+
+def toDB_pro_daily():
+    print("toDB_pro_daily start " + str(datetime.datetime.now()))
+    df = pro.daily(trade_date=c.DATE)
+    df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FOMART)
+    df.to_sql('t_pro_daily', c.ENGINE, if_exists='append')
+
 #处理5,10,20,30,60,120日线，量比 pro接口
 def get_pro_kline():
     start = datetime.datetime.now()
