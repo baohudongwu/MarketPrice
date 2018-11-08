@@ -20,6 +20,17 @@ def toDB_pro_stocklist():
     pro.stock_basic(exchange_id='', fields='ts_code,symbol,name,list_date,delist_date,list_status').to_sql('t_pro_stocklist', c.ENGINE, if_exists='append')
     print("toDB_pro_stocklist end " + str(datetime.datetime.now()))
 
+#复权因子
+def toDB_pro_adj_factor():
+    print("toDB_pro_adj_factor start " + str(datetime.datetime.now()))
+    sql = "delete from t_pro_adj_factor where trade_date= '"+c.DATE.replace('-','')+"'"
+    hq._excutesql(sql)
+    df = pro.query('adj_factor', trade_date=c.DATE.replace('-',''))
+    df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FOMART)
+    df.to_sql('t_pro_adj_factor', c.ENGINE, if_exists='append')
+    print("toDB_pro_adj_factor end " + str(datetime.datetime.now()))
+
+
 #分红数据
 def toDB_pro_dividend():
     print("toDB_pro_dividend start " + str(datetime.datetime.now()))
@@ -37,6 +48,8 @@ def toDB_pro_dividend():
 #日线
 def toDB_pro_daily():
     print("toDB_pro_daily start " + str(datetime.datetime.now()))
+    sql = "delete from t_pro_daily where trade_date= '"+c.DATE.replace('-','')+"'"
+    hq._excutesql('delete from')
     df = pro.daily(trade_date=c.DATE.replace('-',''))
     df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FOMART)
     df.to_sql('t_pro_daily', c.ENGINE, if_exists='append')
@@ -59,8 +72,8 @@ def get_pro_kline():
         for row in hq._excutesql(sql):
             print(row['code'])
             sql = sql_body + row['code'] + sql_foot
-            print(sql)
             df = pd.DataFrame(hq._excutesql(sql).fetchall())
+            print(df)
             if (df.empty):
                 print('empty')
                 continue
