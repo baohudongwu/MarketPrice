@@ -12,6 +12,11 @@ ts.set_token('37dd55b1cdf9e94548a9731821cdaf49c0d04be8ac6d038877a7341e')
 global pro
 pro = ts.pro_api()
 
+def toDB_pro_funcitonname(fname, tname, type, comment):
+    sql = "INSERT INTO t_pro_functionmap(fname,tname,type,comment) values('" + fname + "','" + tname + "'," + str(
+        type) + ",'" + comment + "')"
+    hq._excutesql(sql)
+
 #股票列表
 def toDB_pro_stocklist():
     print("toDB_pro_stocklist start "+str(datetime.datetime.now()))
@@ -19,17 +24,6 @@ def toDB_pro_stocklist():
     hq._excutesql(sql)
     pro.stock_basic(exchange_id='', fields='ts_code,symbol,name,list_date,delist_date,list_status').to_sql('t_pro_stocklist', c.ENGINE, if_exists='append')
     print("toDB_pro_stocklist end " + str(datetime.datetime.now()))
-
-#复权因子
-def toDB_pro_adj_factor():
-    print("toDB_pro_adj_factor start " + str(datetime.datetime.now()))
-    sql = "delete from t_pro_adj_factor where trade_date= '"+c.DATE.replace('-','')+"'"
-    hq._excutesql(sql)
-    df = pro.query('adj_factor', trade_date=c.DATE.replace('-',''))
-    df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FOMART)
-    df.to_sql('t_pro_adj_factor', c.ENGINE, if_exists='append')
-    print("toDB_pro_adj_factor end " + str(datetime.datetime.now()))
-
 
 #分红数据
 def toDB_pro_dividend():
@@ -45,11 +39,40 @@ def toDB_pro_dividend():
             df.to_sql('t_pro_dividend', c.ENGINE, if_exists='append')
     print("toDB_pro_dividend end " + str(datetime.datetime.now()))
 
+def toDB_pro_common():
+    start = datetime.datetime.now()
+    for fn, tn, t,i in hq._excutesql("select fname,tname,type,isdate from t_pro_functionmap where flag = 1"):
+        print("###" + fn + "###" + tn + "###" + "###")
+        try:
+            if i == 'Y':
+                sql_del = "delete from " + tn + " where trade_date = '" + c.DATE.replace('-', '') + "'"
+            else:
+                sql_del = "delete from " + tn
+            print(sql_del)
+            hq._excutesql(sql_del)
+            if t == 0:
+                df = pro.query(fn, trade_date=c.DATE.replace('-', ''))
+            if t == 1:
+                fun = "pro."+fn +"(trade_date=c.DATE.replace('-',''))"
+                print(fun)
+                df = eval(fun)
+            df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FOMART)
+            df.to_sql(tn, c.ENGINE, if_exists='append')
+        except:
+            sql = "update t_pro_functionmap set flag = 3 where tname ='" + tn + "'"
+            hq._excutesql(sql)
+            continue
+        finally:
+            sql = "update t_pro_functionmap set flag = 1 where flag = 0"
+            hq._excutesql(sql)
+            end = datetime.datetime.now()
+            print("get_pro_com: " + str(end - start))
+
 #日线
 def toDB_pro_daily():
     print("toDB_pro_daily start " + str(datetime.datetime.now()))
     sql = "delete from t_pro_daily where trade_date= '"+c.DATE.replace('-','')+"'"
-    hq._excutesql('delete from')
+    hq._excutesql(sql)
     df = pro.daily(trade_date=c.DATE.replace('-',''))
     df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FOMART)
     df.to_sql('t_pro_daily', c.ENGINE, if_exists='append')
