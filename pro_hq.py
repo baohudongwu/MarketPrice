@@ -67,11 +67,12 @@ def toDB_pro_common():
                 sql_del = "delete from " + tn
             print(sql_del)
             hq._excutesql(sql_del)
+            sql_update = "update t_pro_functionmap set flag = 0 where tname ='" + tn + "'"
+            hq._excutesql(sql_update)
             if t == 0:
                 df = pro.query(fn, trade_date=c.DATE.replace('-', ''))
             if t == 1:
                 fun = "pro."+fn +'('+para+')'
-                print(fun)
                 df = eval(fun)
             try:
                 df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FOMART)
@@ -83,7 +84,7 @@ def toDB_pro_common():
             continue
         finally:
             sql = "update t_pro_functionmap set flag = 1 where flag = 0"
-            #hq._excutesql(sql)
+            hq._excutesql(sql)
             end = datetime.datetime.now()
             print("get_pro_com: " + str(end - start))
 
@@ -106,7 +107,6 @@ def get_pro_kline():
             print(row['code'])
             sql = sql_body + row['code'] + sql_foot
             df = pd.DataFrame(hq._excutesql(sql).fetchall())
-            print(df)
             if (df.empty):
                 print('empty')
                 continue
