@@ -68,15 +68,6 @@ def toDB_pro_common():
             end = datetime.datetime.now()
             print("get_pro_com: " + str(end - start))
 
-#日线
-def toDB_pro_daily():
-    print("toDB_pro_daily start " + str(datetime.datetime.now()))
-    sql = "delete from t_pro_daily where trade_date= '"+c.DATE.replace('-','')+"'"
-    hq._excutesql(sql)
-    df = pro.daily(trade_date=c.DATE.replace('-',''))
-    df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FOMART)
-    df.to_sql('t_pro_daily', c.ENGINE, if_exists='append')
-
 #处理5,10,20,30,60,120日线，量比 pro接口
 def get_pro_kline():
     start = datetime.datetime.now()
