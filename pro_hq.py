@@ -7,6 +7,7 @@ import datetime
 from pandas.core.frame import DataFrame
 import tushare.util.formula as tsu
 import threading
+import time
 
 ts.set_token('37dd55b1cdf9e94548a9731821cdaf49c0d04be8ac6d038877a7341e')
 global pro
@@ -39,9 +40,25 @@ def toDB_pro_dividend():
             df.to_sql('t_pro_dividend', c.ENGINE, if_exists='append')
     print("toDB_pro_dividend end " + str(datetime.datetime.now()))
 
+#概念股票明细
+def toDB_pro_conceptDetail():
+    for id,name in hq._excutesql("select code,name from t_pro_concept order by code"):
+        df = pro.concept_detail(id=id[0], fields='ts_code,name,in_date,out_date')
+        if df is None:
+            pass
+        else:
+            df['ts_code'] =df['ts_code'].map(c.PRO_CODE_FOMART)
+            hq.Add_col(df,id=id,concept=name)
+            time.sleep(10)
+            df.to_sql('t_pro_concept_detail', c.ENGINE, if_exists='append')
+    print("toDB_pro_conceptDetail end " + str(datetime.datetime.now()))
+
+#tpye 0 使用query方法且参数需要日期
+#type 1 方法参数存储在库中
+#type 2 无入参
 def toDB_pro_common():
     start = datetime.datetime.now()
-    for fn, tn, t,i in hq._excutesql("select fname,tname,type,isdate from t_pro_functionmap where flag = 1"):
+    for fn, tn, t,i,para in hq._excutesql("select fname,tname,type,isdate,parameter from t_pro_functionmap where flag = 1 and isusual = 'Y'"):
         print("###" + fn + "###" + tn + "###" + "###")
         try:
             if i == 'Y':
@@ -53,18 +70,20 @@ def toDB_pro_common():
             if t == 0:
                 df = pro.query(fn, trade_date=c.DATE.replace('-', ''))
             if t == 1:
-                fun = "pro."+fn +"(trade_date=c.DATE.replace('-',''))"
+                fun = "pro."+fn +'('+para+')'
                 print(fun)
                 df = eval(fun)
-            df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FOMART)
-            df.to_sql(tn, c.ENGINE, if_exists='append')
+            try:
+                df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FOMART)
+            finally:
+                df.to_sql(tn, c.ENGINE, if_exists='append')
         except:
             sql = "update t_pro_functionmap set flag = 3 where tname ='" + tn + "'"
             hq._excutesql(sql)
             continue
         finally:
             sql = "update t_pro_functionmap set flag = 1 where flag = 0"
-            hq._excutesql(sql)
+            #hq._excutesql(sql)
             end = datetime.datetime.now()
             print("get_pro_com: " + str(end - start))
 
