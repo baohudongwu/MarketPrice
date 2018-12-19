@@ -36,7 +36,7 @@ def toDB_pro_dividend():
         if df is None:
             pass
         else:
-            df['ts_code'] =df['ts_code'].map(c.PRO_CODE_FOMART)
+            df['ts_code'] =df['ts_code'].map(c.PRO_CODE_FORMAT)
             df.to_sql('t_pro_dividend', c.ENGINE, if_exists='append')
     print("toDB_pro_dividend end " + str(datetime.datetime.now()))
 
@@ -47,7 +47,7 @@ def toDB_pro_conceptDetail():
         if df is None:
             pass
         else:
-            df['ts_code'] =df['ts_code'].map(c.PRO_CODE_FOMART)
+            df['ts_code'] =df['ts_code'].map(c.PRO_CODE_FORMAT)
             hq.Add_col(df,id=id,concept=name)
             time.sleep(10)
             df.to_sql('t_pro_concept_detail', c.ENGINE, if_exists='append')
@@ -75,7 +75,7 @@ def toDB_pro_common():
                 fun = "pro."+fn +'('+para+')'
                 df = eval(fun)
             try:
-                df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FOMART)
+                df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FORMAT)
             finally:
                 df.to_sql(tn, c.ENGINE, if_exists='append')
         except:
