@@ -64,21 +64,22 @@ def importcsv_excle(date):
     for fn,fp,sn,cn,fc,isexcel in hq._excutesql(sql):
         sql_d = "delete from " + sn + " where date = '" + date + "'"
         hq._excutesql(sql_d)
-        print(fn)
         csv_path = eval(fp.split('!')[0])
-        if (isexcel=='y'):
-            excel_path = eval(fp.split('!')[1])
-            pd.read_csv(csv_path, encoding='gb18030').to_excel(excel_path, sheet_name=DATE)  # csv转excle
-            df = pd.read_excel(excel_path, sheet_name=DATE)
-        else:
-            df = pd.read_csv(csv_path, encoding='gb18030')
-            df.reset_index(level=0, inplace=True)
-        df.drop(df.columns[len(df.columns) - 1], axis=1, inplace=True)
-        df.columns = eval(cn)
-        if len(fc)>0:#整理数据格式
-            for i in range(len(fc.split('!'))):
-                df[fc.split('!')[i].split('#')[0]] = df[fc.split('!')[i].split('#')[0]].map(eval(fc.split('!')[i].split('#')[1]))
-        #df.to_sql(sn, c.ENGINE, if_exists='append')
-        # os.remove(excel_path)
-        # os.remove(csv_path)
+        if (os.path.exists(csv_path)):
+            print(fn)
+            if (isexcel=='y'):
+                excel_path = eval(fp.split('!')[1])
+                pd.read_csv(csv_path, encoding='gb18030').to_excel(excel_path, sheet_name=DATE)  # csv转excle
+                df = pd.read_excel(excel_path, sheet_name=DATE)
+            else:
+                df = pd.read_csv(csv_path, encoding='gb18030')
+                df.reset_index(level=0, inplace=True)
+            df.drop(df.columns[len(df.columns) - 1], axis=1, inplace=True)
+            df.columns = eval(cn)
+            if len(fc)>0:#整理数据格式
+                for i in range(len(fc.split('!'))):
+                    df[fc.split('!')[i].split('#')[0]] = df[fc.split('!')[i].split('#')[0]].map(eval(fc.split('!')[i].split('#')[1]))
+            #df.to_sql(sn, c.ENGINE, if_exists='append')
+            # os.remove(excel_path)
+            # os.remove(csv_path)
 
