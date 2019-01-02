@@ -75,7 +75,10 @@ def toDB_pro_common():
                 fun = "pro."+fn +'('+para+')'
                 df = eval(fun)
             try:
-                df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FORMAT)
+                if (fn=='index_weight'):
+                    df['con_code'] = df['con_code'].map(c.PRO_CODE_FORMAT)
+                else:
+                    df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FORMAT)
             finally:
                 df.to_sql(tn, c.ENGINE, if_exists='append')
         except:
