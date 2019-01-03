@@ -186,8 +186,8 @@ def get_aoi(type,**kwargs):
                 str_min = str(df_tmp[df_tmp['low'] == min[0]]['date'])
                 date_max = str_max[len(str_max) - 36:len(str_max) - 26]
                 date_min = str_min[len(str_min) - 36:len(str_min) - 26]
-                int_datemin = np.where((df_CURRENT[1] == date_min))
-                int_datecur = np.where((df_CURRENT[1] == c.DATE))
+                int_datemin = np.where((df_CURRENT[2] == date_min))
+                int_datecur = np.where((df_CURRENT[2] == c.DATE))
                 if ((int_datecur[0][0] - int_datemin[0][0]) > (float(c.DAYS) * 0.618)):
                     if (date_max == c.DATE):
                         list.append(code)

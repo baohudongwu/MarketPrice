@@ -9,8 +9,7 @@ import hq as hq
 FORMAT_date = lambda x: x.replace('-','')
 FORMAT_SPACE = lambda x: x.strip()
 DATE = time.strftime('%Y%m%d',time.localtime())
-DATE = DATE[:4]+'年'+DATE[4:6]+'月'+DATE[6:8]+'日'
-
+DATE = DATE[:4]+'年'+str(int(DATE[4:6]))+'月'+str(int(DATE[6:8]))+'日'
 #DATE = '180812'
 #print(DATE)
 #path = "C:/image/" + DATE + "/"
@@ -65,6 +64,7 @@ def importcsv_excle(date):
         sql_d = "delete from " + sn + " where date = '" + date + "'"
         hq._excutesql(sql_d)
         csv_path = eval(fp.split('!')[0])
+
         if (os.path.exists(csv_path)):
             print(fn)
             if (isexcel=='y'):
@@ -79,7 +79,9 @@ def importcsv_excle(date):
             if len(fc)>0:#整理数据格式
                 for i in range(len(fc.split('!'))):
                     df[fc.split('!')[i].split('#')[0]] = df[fc.split('!')[i].split('#')[0]].map(eval(fc.split('!')[i].split('#')[1]))
-            #df.to_sql(sn, c.ENGINE, if_exists='append')
+            df.to_sql(sn, c.ENGINE, if_exists='append')
             # os.remove(excel_path)
             # os.remove(csv_path)
+        else:
+            print("No file "+csv_path)
 

@@ -28,13 +28,14 @@ def toDB_tradeday():
 def istradeday(date):
     df = pd.DataFrame(_excutesql(c.SQL_TRADEDAY).fetchall())
     for i in range(len(df)):
-        if (df[1][i] == date):
+        #if (df[1][i] == date):
+        if (df[2][i] == date): #t_pro_tradeday
             flag = 1
             return date
         else:
             flag = 0
     if (flag == 0):
-        return pd.DataFrame(_excutesql("SELECT max(cal_date) from t_pro_tradeday where  isopen = 1 and cal_date <'" + date + "'").fetchall())[0][0]
+        return pd.DataFrame(_excutesql("SELECT max(cal_date) from t_pro_tradeday where  is_open = 1 and cal_date <'" + date + "'").fetchall())[0][0]
             #"SELECT max(calendardate) from t_tradeday where  isopen = 1 and calendardate <'" + date + "'").fetchall())[0][0]
 
 # 指定日期的上day的交易日
@@ -45,16 +46,19 @@ def get_lasttradeday(days):
         return c.DATE
     else:
         for i in range(len(df)):
-            if (df[1][i] == c.DATE):
+            #if (df[1][i] == c.DATE):
+            if (df[2][i] == c.DATE):
                 flag = 1
-                return df[1][i - days]
+                return df[2][i - days]
             else:
                 flag = 0
         if (flag == 0):
             tmp = pd.DataFrame(_excutesql(c.SQL_LASTTRADEDAY).fetchall())[0][0]
             for j in range(len(df)):
-                if (df[1][j] == tmp):
-                    return df[1][j - days]
+                #if (df[1][j] == tmp):
+                if (df[2][j] == tmp):
+                    #return df[1][j - days]
+                    return df[2][j - days]
 
 # 相差交易日天数,date1,date2均为交易日
 def get_days(date1, date2, df):
