@@ -34,9 +34,8 @@ def istradeday(date):
         else:
             flag = 0
     if (flag == 0):
-        return pd.DataFrame(_excutesql(
-            "SELECT max(calendardate) from t_tradeday where  isopen = 1 and calendardate <'" + date + "'").fetchall())[
-            0][0]
+        return pd.DataFrame(_excutesql("SELECT max(cal_date) from t_pro_tradeday where  isopen = 1 and cal_date <'" + date + "'").fetchall())[0][0]
+            #"SELECT max(calendardate) from t_tradeday where  isopen = 1 and calendardate <'" + date + "'").fetchall())[0][0]
 
 # 指定日期的上day的交易日
 def get_lasttradeday(days):
@@ -285,3 +284,9 @@ def get_kline(period):
     _excutesql(sql_u)
     end = datetime.datetime.now()
     print("get_kline: " + str(end - start))
+
+
+
+
+
+
