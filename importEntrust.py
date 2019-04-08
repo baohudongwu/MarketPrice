@@ -39,7 +39,7 @@ def importentrust(date):
     os.remove(excel_path)
     os.remove(csv_path)
 
-#期权风险指标
+#期权风险指标--未用
 def importrisk(date):
     csv_path = u'C:\\risk.csv'
     sql = "delete from t_opt_risk where date = '" + date + "'"
@@ -55,33 +55,33 @@ def importrisk(date):
     df.to_sql('t_opt_risk', c.ENGINE, if_exists='append')
     os.remove(csv_path)
 
-
 #format_column之间分隔用!format_column与format格式之间用#
 #先源路径，后生成路径
 def importcsv_excle(date):
     sql = "select function_name,file_path,sql_table_name,columns_name,format_columns,csv_excel from t_importfuction"
     for fn,fp,sn,cn,fc,isexcel in hq._excutesql(sql):
-        sql_d = "delete from " + sn + " where date = '" + date + "'"
-        hq._excutesql(sql_d)
         csv_path = eval(fp.split('!')[0])
-
         if (os.path.exists(csv_path)):
             print(fn)
+            sql_d = "delete from " + sn + " where date = '" + date + "'"
+            hq._excutesql(sql_d)
             if (isexcel=='y'):
                 excel_path = eval(fp.split('!')[1])
                 pd.read_csv(csv_path, encoding='gb18030').to_excel(excel_path, sheet_name=DATE)  # csv转excle
                 df = pd.read_excel(excel_path, sheet_name=DATE)
+                os.remove(excel_path)
             else:
                 df = pd.read_csv(csv_path, encoding='gb18030')
                 df.reset_index(level=0, inplace=True)
             df.drop(df.columns[len(df.columns) - 1], axis=1, inplace=True)
+            df.drop(df.columns[0], axis=1, inplace=True)
+            #print(df)
             df.columns = eval(cn)
             if len(fc)>0:#整理数据格式
                 for i in range(len(fc.split('!'))):
                     df[fc.split('!')[i].split('#')[0]] = df[fc.split('!')[i].split('#')[0]].map(eval(fc.split('!')[i].split('#')[1]))
             df.to_sql(sn, c.ENGINE, if_exists='append')
-            # os.remove(excel_path)
-            # os.remove(csv_path)
+            os.remove(csv_path)
         else:
             print("No file "+csv_path)
 
