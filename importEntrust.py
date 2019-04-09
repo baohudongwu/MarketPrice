@@ -74,7 +74,8 @@ def importcsv_excle(date):
                 df = pd.read_csv(csv_path, encoding='gb18030')
                 df.reset_index(level=0, inplace=True)
             df.drop(df.columns[len(df.columns) - 1], axis=1, inplace=True)
-            df.drop(df.columns[0], axis=1, inplace=True)
+            if (fn=='importentrust'):
+                df.drop(df.columns[0], axis=1, inplace=True)
             #print(df)
             df.columns = eval(cn)
             if len(fc)>0:#整理数据格式
