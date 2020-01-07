@@ -92,26 +92,26 @@ def toDB_pro_common():
             print("get_pro_com: " + str(end - start))
 
 #处理5,10,20,30,60,120日线，量比 pro接口
-def get_pro_kline():
+def get_pro_kline(date):
     start = datetime.datetime.now()
     print(start)
     hq._excutesql("delete from t_kline")
     sql_body = "SELECT trade_date,ts_code,close,vol FROM t_pro_daily WHERE  ts_code = '"
-    sql_foot = "' and trade_date <= '"+c.DATE.replace('-','')+"' order by trade_date desc limit 120"
+    sql_foot = "' and trade_date <= '"+date+"' order by trade_date desc limit 120"
     sql_u = "update t_pro_daily a,t_kline b set a.vr=b.vr,a.ma5=b.ma5,a.ma10=b.ma10,a.ma20=b.ma20,a.ma30=b.ma30,a.ma60=b.ma60,a.ma120=b.ma120 where a.trade_date =b.datetime and a.ts_code =b.code"
     def calc(market,sql):
         if(market == 'SH'):
-            sql = "select code from T_StockBasics where code like '6%%' order by code "
+            sql = "select code from v_stockcode where code like '6%%' order by code "
         if (market == 'SZ'):
-            sql = "select code from T_StockBasics where code like '0%%' order by code "
+            sql = "select code from v_stockcode where code like '0%%' order by code "
         if (market == 'CYB'):
-            sql = "select code from T_StockBasics where code like '3%%' order by code "
+            sql = "select code from v_stockcode where code like '3%%' order by code "
         for row in hq._excutesql(sql):
-            print(row['code'])
+            #print(row['code'])
             sql = sql_body + row['code'] + sql_foot
             df = pd.DataFrame(hq._excutesql(sql).fetchall())
             if (df.empty):
-                print('empty')
+                print(row['code'] + ' is empty')
                 continue
             else:
                 df.columns = ['datetime', 'code', 'close', 'vol']

@@ -37,12 +37,12 @@ import time
 #
 # start = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 # pro_hq.toDB_pro_common()
-# pro_hq.get_pro_kline()
+# pro_hq.get_pro_kline(c.DATE.replace('-',''))
 # end = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 # print('START   '+start)
 # print('END   '+end)
 
-ith.importcsv_excle('20190807')
+
 #
 # df = pd.read_excel("C:/Users/wyq/Desktop/123.xlsx",sheet_name='123')
 # df.to_sql('t_stockentrust', c.ENGINE, if_exists='append')
@@ -59,8 +59,10 @@ ith.importcsv_excle('20190807')
 
 # ts.set_token('37dd55b1cdf9e94548a9731821cdaf49c0d04be8ac6d038877a7341e')
 # pro = ts.pro_api()
-# df = pro.daily(trade_date='20190513')
-# df.to_sql('t_pro_optdaily', c.ENGINE, if_exists='append')
+# # df = pro.fund_daily(ts_code='510050.SH', start_date='20190628', end_date='20191208')
+# df = pro.trade_cal(exchange='', start_date='20200101', end_date='20201231')
+# # df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FORMAT)
+# #df.to_sql('t_pro_tradeday', c.ENGINE, if_exists='append')
 # print(df)
 
 
@@ -83,4 +85,7 @@ ith.importcsv_excle('20190807')
 #         get_lasttradeday(id,date,days)
 #     except:
 #         continue
+
+#print(u.get_shrink(15))
+ith.importcsv_excle('20200106')
 
