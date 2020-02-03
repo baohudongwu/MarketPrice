@@ -81,7 +81,7 @@ def toDB_pro_common():
                     df['ts_code'] = df['ts_code'].map(c.PRO_CODE_FORMAT)
             finally:
                 df.to_sql(tn, c.ENGINE, if_exists='append')
-                except:
+        except:
             sql = "update t_pro_functionmap set flag = 3 where tname ='" + tn + "'"
             print(sql)
             hq._excutesql(sql)
