@@ -87,5 +87,14 @@ import time
 #         continue
 
 #print(u.get_shrink(15))
-ith.importcsv_excle('20200106')
+
+start = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+print('START   '+start)
+pro_hq.toDB_pro_common()
+pro_hq.get_pro_kline(c.DATE.replace('-',''))
+end = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+print('END   '+end)
+
+#test
+#ith.importcsv_excle('20200106')
 
