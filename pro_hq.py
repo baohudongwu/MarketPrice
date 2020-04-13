@@ -65,7 +65,7 @@ def toDB_pro_common():
                 sql_del = "delete from " + tn + " where trade_date = '" + c.DATE.replace('-', '') + "'"
             else:
                 sql_del = "delete from " + tn
-            print(sql_del)
+            #print(sql_del)
             hq._excutesql(sql_del)
             sql_update = "update t_pro_functionmap set flag = 0 where tname ='" + tn + "'"
             hq._excutesql(sql_update)
@@ -83,10 +83,11 @@ def toDB_pro_common():
                 df.to_sql(tn, c.ENGINE, if_exists='append')
         except:
             sql = "update t_pro_functionmap set flag = 3 where tname ='" + tn + "'"
+            print(sql)
             hq._excutesql(sql)
             continue
         finally:
-            sql = "update t_pro_functionmap set flag = 1 where flag = 0"
+            sql = "update t_pro_functionmap set flag = 1 where flag = 0 or flag = 3"
             hq._excutesql(sql)
             end = datetime.datetime.now()
             print("get_pro_com: " + str(end - start))
