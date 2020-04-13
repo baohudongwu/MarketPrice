@@ -86,3 +86,10 @@ def importcsv_excle(date):
         else:
             print("No file "+csv_path)
 
+def importmonthlystatement(filename):
+    excel_path = "c:\\"+filename+".xlsx"
+    df = pd.read_excel(excel_path, sheet_name=filename)
+    df.columns = ['date', 'series', 'code', 'name', 'operation', 'occ_amount', 'balance', 'remark', 'quantity',
+                  'average_price', 'done_amount', 'done_series', 'market', 'stockholder', 'exchange_rate', 'fee_gh',
+                  'fee_yh', 'fee_qt']
+    df.to_sql('t_monthlystatement', c.ENGINE, if_exists='append')
