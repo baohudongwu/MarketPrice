@@ -22,7 +22,7 @@ def csv_to_excle():
         csv = pd.read_csv("c:\\risk.csv", encoding='gb18030')
         csv.to_excel("c:\\risk.xlsx", sheet_name='risk')
 
-#通达信成交数据
+#成交数据
 def importentrust(date):
     csv_path = u'C:\\' + DATE + '.csv'
     excel_path = u'C:\\' + DATE + '.xlsx'
