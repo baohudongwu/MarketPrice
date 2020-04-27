@@ -2,12 +2,13 @@ from sqlalchemy import create_engine
 import time
 import hq as hq
 
-ENGINE = create_engine('mysql://root:1@10.16.90.119/hq?charset=utf8')
-#ENGINE = create_engine('mysql://root:root@127.0.0.1/hq?charset=utf8')
+#ENGINE = create_engine('mysql://root:1@10.16.90.119/hq?charset=utf8')
+ENGINE = create_engine('mysql://root:root@127.0.0.1/hq?charset=utf8')
 #ENGINE = create_engine('mysql://root:root@114.116.65.109/hq?charset=utf8')
 FORMAT = lambda x: '%.2f' % x
 #PRO_CODE_FOMART = lambda  x : x[0:6]
 PRO_CODE_FORMAT = lambda  x: x.split('.')[0]
+STOCK_NAME = lambda  x: x.split(':')[1]
 MA  = [5,10,20,30,60,120]
 
 #"2011-01-01":"2011-12-31","2012-01-01":"2012-12-31","2013-01-01":"2013-12-31",
@@ -16,8 +17,8 @@ PERIOD={"2018-06-30":"2018-07-31"}
 #SQL_TRADEDAY = "SELECT * FROM t_tradeday where isopen =1"
 SQL_TRADEDAY = "SELECT * FROM t_pro_tradeday where is_open =1"
 SQL_CODE = "select code from T_StockBasics order by code"
-#DATE = hq.istradeday(time.strftime('%Y-%m-%d',time.localtime()))
-DATE='2019-01-02'
+DATE = hq.istradeday(time.strftime('%Y-%m-%d',time.localtime()))
+#DATE='2019-01-02'
 #START=(datetime.datetime.now()+datetime.timedelta(days=-4)).strftime('%Y-%m-%d')
 YEAR = 2018
 QUARTER =2
