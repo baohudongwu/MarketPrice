@@ -95,7 +95,7 @@ def formatcode(x):
         x='00'+str(x)
     return(x)
 
-#同花顺交割单
+#同花顺对账单
 def importmonthlystatement(filename):
     excel_path = "c:\\"+filename+".xlsx"
     df = pd.read_excel(excel_path, sheet_name=filename)
