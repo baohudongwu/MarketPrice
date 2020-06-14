@@ -86,12 +86,25 @@ def importcsv_excle(date):
         else:
             print("No file "+csv_path)
 
-#同花顺交割单
+def formatcode(x):
+    if len(str(x))==2:
+        x='0000'+str(x)
+    if len(str(x))==3:
+        x='000'+str(x)
+    if len(str(x))==4:
+        x='00'+str(x)
+    return(x)
+
+#同花顺对账单
 def importmonthlystatement(filename):
     excel_path = "c:\\"+filename+".xlsx"
     df = pd.read_excel(excel_path, sheet_name=filename)
     df.columns = ['date', 'series', 'code', 'name', 'operation', 'occ_amount', 'balance', 'remark', 'quantity',
                   'average_price', 'done_amount', 'done_series', 'market', 'stockholder', 'exchange_rate', 'fee_gh',
                   'fee_yh', 'fee_qt']
-    df['name']=df['remark'].map(c.STOCK_NAME)
-    df.to_sql('t_stock_monthlystatement', c.ENGINE, if_exists='append')
+    df['name'] = df['remark'].map(c.STOCK_NAME)
+    df['code'] = df['code'].apply(formatcode)
+    df['series']=''
+    df['market']=''
+    print(df)
+    #df.to_sql('t_stock_monthlystatement', c.ENGINE, if_exists='append')
