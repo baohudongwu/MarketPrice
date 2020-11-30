@@ -33,9 +33,11 @@ def importentrust(date):
     pd.read_csv(csv_path, encoding='gb18030').to_excel(excel_path, sheet_name=DATE) #csv转excle
     df = pd.read_excel(excel_path,sheet_name=DATE)
     df.drop(df.columns[len(df.columns) - 1], axis=1, inplace=True)
+    df.drop(['序号'],axis=1,inplace=True)
+    print(df)
     df.columns = ['date', 'time', 'market', 'code', 'name', 'deal', 'type', 'price', 'quantity', 'amount','reserve_flag', 'serial', 'remark','fee']
     df['date'] = df['date'].map(FORMAT_date)
-    df.to_sql('t_entrust', c.ENGINE, if_exists='append')
+    df.to_sql('t_opt_entrust', c.ENGINE, if_exists='append')
     os.remove(excel_path)
     os.remove(csv_path)
 
