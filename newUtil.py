@@ -171,7 +171,10 @@ b、当股价最低时，MACD的DIFF不是最低；
 
 def get_dbl(date):
     # PRO_DBL = "SELECT a.ts_code FROM t_pro_daily a left join t_pro_dailybasic b on a.ts_code = b.ts_code and a.trade_date =b.trade_date where a.ma5 < a.ma10 and a.ma10 <a.ma30 and a.ma30 < a.ma60 and a.ma60 < a.ma120 and b.pe_ttm < 40 and b.pb <10 and b.turnover_rate_f < 1.5 and a.trade_date = '" + date + "' and a.ts_code < '680000' order by 1"
-    PRO_DBL = "SELECT a.ts_code FROM t_pro_daily a left join t_pro_dailybasic b on a.ts_code = b.ts_code and a.trade_date =b.trade_date where a.ma10 <a.ma30 and a.ma30 < a.ma60 and a.ma60 < a.ma120 and a.trade_date = '" + date + "' and b.pe_ttm < 40 and b.pb <10 and b.turnover_rate_f < 1.5 and a.ts_code < '680000' order by 1"
+    #PRO_DBL = "SELECT a.ts_code FROM t_pro_daily a left join t_pro_dailybasic b on a.ts_code = b.ts_code and a.trade_date =b.trade_date where a.ma10 <a.ma30 and a.ma30 < a.ma60 and a.ma60 < a.ma120 and a.trade_date = '" + date + "' and b.turnover_rate_f < 1.5 and a.ts_code < '680000' and pb is not null order by 1"
+    PRO_DBL = "SELECT a.ts_code FROM t_pro_daily a where a.ma10 <a.ma30 and a.ma30 < a.ma60 and a.ma60 < a.ma120 and a.trade_date =  '" + date + "'  and a.ts_code < '680000'  order by 1"
+    #print(PRO_DBL)
+    list = []
     for code in hq._excutesql(PRO_DBL).fetchall():
         #print(code)
         df =pd.DataFrame(hq._excutesql("select trade_date,high,low,close from t_pro_daily where ts_code = '" +code[0]+"' and trade_date <= '"+date+"' order by trade_date desc LIMIT 120").fetchall())
@@ -181,12 +184,8 @@ def get_dbl(date):
         df['diff'], df['dea'], df['macd'] = MACD(df['close'].values, fastperiod=12, slowperiod=26, signalperiod=9)
         df['junction'] = df['diff'] / df['dea']
         low_min = df.groupby(['code'])['low'].min()
-        # diff_min = df.groupby(['code'])['diff'].min()
-        # diff = df[df['date'] == date]['diff']
-        # #print(df[(df['junction'] < 0.99) & (df['junction'] > 0.95 )& (df['diff'] <0 ) & (df['dea']<0) & (df['macd']<0)])
-        # #if(df[df['low']==low_min[0]]['date'].index[0]==0 and float(c.FORMAT(diff_min))/float(c.FORMAT(diff[0]))!=1):
-        # if (df[(df['junction'] < 0.99) & (df['junction'] > 0.95 )& (df['diff'] <0 ) & (df['dea']<0) & (df['macd']>0)].index.min() < df[df['low'] == low_min[0]].index[0]):
-        df_tmp = df[(df['junction'] < 0.99) & (df['junction'] > 0.95)]
+        df['diff_v'] = df['diff'] - df['diff'].shift(1)
+        df_tmp = df[(df['junction'] < 0.99) & (df['junction'] > 0.95) & (df['diff_v'] > 0)]
         df_tmp['diff_v1'] = df_tmp['diff'] - df_tmp['diff'].shift(1)
         df_tmp['dea_v1'] = df_tmp['dea'] - df_tmp['dea'].shift(1)
         df_tmp['low_v1'] = df_tmp['low'] - df_tmp['low'].shift(1)
@@ -196,23 +195,78 @@ def get_dbl(date):
         df_tmp['low_v1'] = df_tmp['low'] - df_tmp['low'].shift(1)
         df_tmp['low_v2'] = df_tmp['low'].shift(1) - df_tmp['low'].shift(2)
         df_final = df_tmp[(df_tmp['diff_v1'] > 0) & (df_tmp['dea_v1'] > 0) & (df_tmp['low_v1'] < 0) & (df_tmp['diff_v2'] > 0) & (df_tmp['dea_v2'] > 0) & (df_tmp['low_v2'] < 0) & (df_tmp['low_v1']<0) & (df_tmp['low_v2']<0)]
-        # if(df[(df['junction']<0.99) & (df['junction']>0.95)].index.min()<df[df['low']==low_min[0]].index[0]):
-        #     print('1')
         if (len(df_final)>0):
-            print(code)
-            #print(df_final)
+            list.append(code[0])
+    print(list)
+    return list
+
+''' 反包
+1、五日线高于55日线
+2、最新四天数据，基准日为最新日期(第四天),基准日为跌(开盘价大于收盘价)
+3、第一天为涨
+4、后三天为跌势，成交量第二天最高，第三天小于第二天80%，基准日成交量最小
+5、没有顶背离
+'''
+def get_fb(date):
+    #PRO_FB = "select a.ts_code from t_pro_daily a where a.ma5>a.ma10 and a.ma10 >a.ma20 and a.ma20 > a.ma30 and a.ma30 > a.ma60 and a.ma60 > a.ma120 and a.trade_date = '" + date.replace('-','') + "'  and a.close<a.open" #and a.close <= a.pre_close"
+    #PRO_FB = "select a.ts_code from t_pro_daily a where a.ma20 > a.ma30 and a.ma30 > a.ma60 and a.ma60 > a.ma120 and a.trade_date = '" + date.replace('-', '') + "'  and a.close<a.open"  # and a.close <= a.pre_close"
+    PRO_FB = "select a.ts_code from t_pro_daily a where a.ma60 > a.ma120 and a.trade_date = '" + date.replace('-', '') + "'  and a.close<a.open"  # and a.close <= a.pre_close"
+    #PRO_FB = "select a.ts_code from t_pro_daily a where a.trade_date = '" + date.replace('-','') + "'  and a.close<=a.open"  # and a.close <= a.pre_close"
+    #PRO_FB = "select DISTINCT code from t_limit_detail where  date <='"+date.replace('-','')+"' and date > '"+hq.get_Xtradedate(date,8).replace('-','')+"' and code in (select ts_code from t_pro_daily a where a.ma5>a.ma10 and a.ma10 >a.ma20 and a.ma20 > a.ma30 and a.ma30 > a.ma60 and a.ma60 > a.ma120 and trade_date = '"+date.replace('-','')+"' and close <= open ) order by 1" #8个交易日内有涨停
+    #PRO_FB = "select DISTINCT code from t_limit_detail where  top = 0 and date <='" + date.replace('-','') + "' and date > '" + hq.get_Xtradedate(date, 8).replace('-', '') + "' and code in (select ts_code from t_pro_daily where trade_date = '" + date.replace('-', '') + "' and close <= open ) order by 1"  # 8个交易日内有涨停
+    #print(PRO_FB)
+    list = []
+    for code in hq._excutesql(PRO_FB).fetchall():
+        print(code)
+        try:
+            df = pd.DataFrame(hq._excutesql("select ts_code,trade_date,open,close,pre_close,amount,high from t_pro_daily where ts_code =  '" +code[0]+"' and trade_date <= '"+date.replace('-','')+"' order by trade_date desc limit 4").fetchall())
+            #df = pd.DataFrame(hq._excutesql("select ts_code,trade_date,open,close,pre_close,vol,high from t_pro_daily where ts_code = 300619 and trade_date <=20210812 order by trade_date desc limit 4").fetchall())
+            df.columns = ['code','date', 'open','close', 'pre_close', 'vol','high']
+            df_tmp = df.drop(labels=3)  # 下跌三天
+            df_min_vol = df_tmp.groupby(['code'])['vol'].min()
+            df_max_vol = df_tmp.groupby(['code'])['vol'].max()
+            #print(df)
+            try:
+                if(df[df['vol']==df_min_vol[0]]['date'][0]==date.replace('-','')): #基准日是最小量
+                    # print(df['code'][0])
+                    # print('111111111111111111111111')
+                    if(df['vol'][2]==df_max_vol[0]):   #第二天成交量最高
+                        # print(df['code'][0])
+                        # print('22222222222222222')
+                        if(df['open'][3]<=df['close'][3]): #第一天是红的
+                            # print(df['code'][0])
+                            # print('33333333333333333333')
+                            if(df['open'][2]>df['close'][2]):
+                                # print(df['code'][0])
+                                # print('4444444444444444444444444')
+                                if(df['open'][1] > df['close'][1]):
+                                    list.append(code[0])
+                                    #print(df['code'][0])
+                                    #print(code[0])
+                    #print(code[0])
+
+
+            except Exception as e:
+                continue
+        except Exception as e:
+            continue
+    print(list)
+    return list
+
+
 
 
 # def get_dbl(date):
-#     df =pd.DataFrame(hq._excutesql("select trade_date,high,low,close from t_pro_daily where ts_code = '601800' order by trade_date desc LIMIT 120").fetchall())
+#     df =pd.DataFrame(hq._excutesql("select trade_date,high,low,close from t_pro_daily where ts_code = '300758' order by trade_date desc LIMIT 120").fetchall())
 #     df.columns=['date','high','low','close']
-#     df['code'] = '000830'
+#     df['code'] = '600567'
 #     df=df.reindex(index=df.index[::-1])
 #     df['diff'], df['dea'], df['macd'] = MACD(df['close'].values,fastperiod=12, slowperiod=26, signalperiod=9)
 #     df['junction']=df['diff']/df['dea']
 #     low_min = df.groupby(['code'])['low'].min()
 #     diff_min = df.groupby(['code'])['diff'].min()
-#     df_tmp = df[(df['junction']<0.99) & (df['junction']>0.95)]
+#     df['diff_v'] = df['diff']-df['diff'].shift(1)
+#     df_tmp = df[(df['junction']<0.99) & (df['junction']>0.95) & (df['diff_v']>0)]
 #     df_tmp['diff_v1'] = df_tmp['diff'] - df_tmp['diff'].shift(1)
 #     df_tmp['dea_v1'] = df_tmp['dea'] - df_tmp['dea'].shift(1)
 #     df_tmp['low_v1'] = df_tmp['low'] - df_tmp['low'].shift(1)
