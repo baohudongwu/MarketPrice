@@ -74,9 +74,9 @@ def cal(list,date):
     df_base.insert(3, 'flag', 'base')
     df_tmp = pd.merge(max_pd, min_pd,on=['code'])
     df_all = pd.merge(df_tmp, df_base,on=['code'])
-    df_all['win'] = df_all['date_x'].astype(int)-df_all['date'].astype(int)
-    df_all['rate'] = (df_all['close_x']/df_all['close']-1).map(lambda x:round(x,2))*100
-    df_all['loss'] = (df_all['close_y']/df_all['close']-1).map(lambda x:round(x,2))*100
+    df_all['天数'] = df_all['date_x'].astype(int)-df_all['date'].astype(int)
+    df_all['收益率'] = (df_all['close_x']/df_all['close']-1).map(lambda x:round(x,2))*100
+    df_all['亏损率'] = (df_all['close_y']/df_all['close']-1).map(lambda x:round(x,2))*100
     df_all['date'] = pd.to_datetime(df_all['date'])
     df_all['date_x'] = pd.to_datetime(df_all['date_x'])
     df_all['date_y'] = pd.to_datetime(df_all['date_y'])
