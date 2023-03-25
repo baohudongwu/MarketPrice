@@ -8,6 +8,9 @@ from pandas.core.frame import DataFrame
 import tushare.util.formula as tsu
 import threading
 import time
+import math
+from _pydecimal import Decimal,Context,ROUND_HALF_UP
+
 
 ts.set_token('37dd55b1cdf9e94548a9731821cdaf49c0d04be8ac6d038877a7341e')
 global pro
@@ -112,7 +115,7 @@ def get_pro_kline(date):
             sql = sql_body + row['code'] + sql_foot
             df = pd.DataFrame(hq._excutesql(sql).fetchall())
             if (df.empty):
-                print(row['code'] + ' is empty')
+                #print(row['code'] + ' is empty')
                 continue
             else:
                 df.columns = ['datetime', 'code', 'close', 'vol']
@@ -140,4 +143,41 @@ def get_pro_kline(date):
     hq._excutesql(sql_u)
     end = datetime.datetime.now()
     print("get_pro_kline: " + str(end - start))
+
+#计算每天涨跌停数量
+#不统计：第一日上市股票，统计：沪深，科创、创业涨跌停数量
+def get_limit_number(date):
+#print
+#select convert(pre_close*1.1,decimal(10,2)) as top,convert(pre_close*0.9,decimal(10,2)) as down,close from t_pro_daily where trade_date = '20210420'
+# select count(1),a.top from (
+# select convert(pre_close*1.1,decimal(10,2))-close as top,convert(pre_close*0.9,decimal(10,2))-close as down from t_pro_daily where trade_date = '20210420' and (ts_code like '0%' or ts_code like '60%') and ts_code not in (select ts_code from v_ststocklist)
+# ) as a where a.top=0
+    SQL = "select ts_code,pre_close,`close`,high,low from t_pro_daily a where not EXISTS (select 1 from v_ststocklist b where a.ts_code = b.ts_code)  and  trade_date = '"+date+"'"
+    SQL_ST = "select ts_code,pre_close,`close`,high,low from t_pro_daily a where  EXISTS (select 1 from v_ststocklist b where a.ts_code = b.ts_code)  and  trade_date = '"+date+"'"
+    df_5 = pd.DataFrame(hq._excutesql(SQL_ST).fetchall())
+    df_5.columns=['code','pre_close','close','high','low']
+    df_5['date']=date
+    df_5['top']=(df_5['pre_close']*1.05-df_5['close']).map(lambda x:round(x,2))
+    df_5['down']=(df_5['pre_close']*0.95-df_5['close']).map(lambda x:round(x,2))
+    df_5['top_d']=(df_5['pre_close']*1.05-df_5['high']).map(lambda x:round(x,2))
+    df_5['low_d']=(df_5['pre_close']*0.95-df_5['low']).map(lambda x:round(x,2))
+    df =pd.DataFrame(hq._excutesql(SQL).fetchall())
+    df.columns=['code','pre_close','close','high','low']
+    df['date']=date
+    df_10 = df[(df['code'].map(lambda x:x[0:1])=='0') | (df['code'].map(lambda x: x[0:2])=='60')]
+    df_10['top']=(df_10['pre_close']*1.1-df_10['close']).map(lambda x:round(x,2)) #封住涨停
+    df_10['down']=(df_10['pre_close']*0.9-df_10['close']).map(lambda x:round(x,2))
+    df_10['top_d']=(df_10['pre_close']*1.1-df_10['high']).map(lambda x:round(x,2))#涨停过
+    df_10['low_d']=(df_10['pre_close']*0.9-df_10['low']).map(lambda x:round(x,2))
+    df_20 = df[(df['code'].map(lambda x:x[0:1])=='3') | (df['code'].map(lambda x: x[0:2])=='68')]
+    df_20['top']=(df_20['pre_close']*1.2-df_20['close']).map(lambda x:round(x,2))
+    df_20['down']=(df_20['pre_close']*0.8-df_20['close']).map(lambda x:round(x,2))
+    df_20['top_d']=(df_20['pre_close']*1.2-df_20['high']).map(lambda x:round(x,2))
+    df_20['low_d']=(df_20['pre_close']*0.8-df_20['low']).map(lambda x:round(x,2))
+    df_all = pd.concat([df_5,df_10,df_20],axis=0,ignore_index=True)
+    #print(df_10[df_10['code']=='600996'])
+    #print(df_10[df_10['down']==0])
+    #print(df_all[(df_all['top']==0) | (df_all['down']==0) | (df_all['high']==0) | (df_all['low']==0)])
+    df_all[(df_all['top']==0) | (df_all['down']==0) | (df_all['top_d']==0) | (df_all['low_d']==0)].to_sql('t_limit_detail', c.ENGINE, if_exists='append')
+
 
