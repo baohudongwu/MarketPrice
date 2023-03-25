@@ -208,16 +208,17 @@ def get_dbl(date):
 5、没有顶背离
 '''
 def get_fb(date):
-    #PRO_FB = "select a.ts_code from t_pro_daily a where a.ma5>a.ma10 and a.ma10 >a.ma20 and a.ma20 > a.ma30 and a.ma30 > a.ma60 and a.ma60 > a.ma120 and a.trade_date = '" + date.replace('-','') + "'  and a.close<a.open" #and a.close <= a.pre_close"
-    #PRO_FB = "select a.ts_code from t_pro_daily a where a.ma20 > a.ma30 and a.ma30 > a.ma60 and a.ma60 > a.ma120 and a.trade_date = '" + date.replace('-', '') + "'  and a.close<a.open"  # and a.close <= a.pre_close"
-    PRO_FB = "select a.ts_code from t_pro_daily a where a.ma60 > a.ma120 and a.trade_date = '" + date.replace('-', '') + "'  and a.close<a.open"  # and a.close <= a.pre_close"
+    #PRO_FB = "select a.ts_code from t_pro_daily a,t_tdxdata b where a.ma5>a.ma10 and a.ma10 >a.ma20 and a.ma20 > a.ma30 and a.ma30 > a.ma60 and a.ma60 > a.ma120 and a.trade_date = '" + date.replace('-','') + "' and a.close<a.open and (b.pettm <>'--' or b.pe<>'--') and a.ts_code = b.code"# and a.close <= a.pre_close"
+    #PRO_FB = "select a.ts_code from t_pro_daily a,t_tdxdata b where a.ma20 > a.ma30 and a.ma30 > a.ma60 and a.ma60 > a.ma120 and a.trade_date = '" + date.replace('-', '') + "' and a.close<a.open and (b.pettm <>'--' or b.pe<>'--') and a.ts_code = b.code and a.close <= a.pre_close"
+    #PRO_FB = "select a.ts_code from t_pro_daily a where a.ma60 > a.ma120 and a.trade_date = '" + date.replace('-', '') + "'  and a.close<a.open"  # and a.close <= a.pre_close"
+    PRO_FB = "select a.ts_code from t_pro_daily a,t_tdxdata b where a.ma60 > a.ma120 and a.trade_date = '" + date.replace('-', '')+ "' and a.close<a.open and (b.pettm <>'--' or b.pe<>'--') and a.ts_code = b.code" #剔除pe为负的
     #PRO_FB = "select a.ts_code from t_pro_daily a where a.trade_date = '" + date.replace('-','') + "'  and a.close<=a.open"  # and a.close <= a.pre_close"
     #PRO_FB = "select DISTINCT code from t_limit_detail where  date <='"+date.replace('-','')+"' and date > '"+hq.get_Xtradedate(date,8).replace('-','')+"' and code in (select ts_code from t_pro_daily a where a.ma5>a.ma10 and a.ma10 >a.ma20 and a.ma20 > a.ma30 and a.ma30 > a.ma60 and a.ma60 > a.ma120 and trade_date = '"+date.replace('-','')+"' and close <= open ) order by 1" #8个交易日内有涨停
     #PRO_FB = "select DISTINCT code from t_limit_detail where  top = 0 and date <='" + date.replace('-','') + "' and date > '" + hq.get_Xtradedate(date, 8).replace('-', '') + "' and code in (select ts_code from t_pro_daily where trade_date = '" + date.replace('-', '') + "' and close <= open ) order by 1"  # 8个交易日内有涨停
-    #print(PRO_FB)
+    print(PRO_FB)
     list = []
     for code in hq._excutesql(PRO_FB).fetchall():
-        print(code)
+        #print(code)
         try:
             df = pd.DataFrame(hq._excutesql("select ts_code,trade_date,open,close,pre_close,amount,high from t_pro_daily where ts_code =  '" +code[0]+"' and trade_date <= '"+date.replace('-','')+"' order by trade_date desc limit 4").fetchall())
             #df = pd.DataFrame(hq._excutesql("select ts_code,trade_date,open,close,pre_close,vol,high from t_pro_daily where ts_code = 300619 and trade_date <=20210812 order by trade_date desc limit 4").fetchall())
@@ -253,31 +254,55 @@ def get_fb(date):
     print(list)
     return list
 
+'''1、连板2天的
+   2、连板3天的
+'''
+def getLB(days):
+    LB_SQL = "SELECT date,code from v_limitup_detail where date > '20220101' and name not like '%%ST%%'"
+    df = pd.DataFrame(hq._excutesql(LB_SQL).fetchall())
+    df.columns = ['date','code']
+    df_grp = df.groupby(['code'])
+    for date,code in df_grp:
+        print(code)
+        print(date)
 
+#计算MACD
+def getMACD(date):
+    pro_code_sql = "select ts_code from t_pro_daily where trade_date = '"+date+"' and ts_code <'000002'"
+    for code in hq._excutesql(pro_code_sql).fetchall():
+        print(code[0])
+        df = pd.DataFrame(hq._excutesql("select trade_date,close from t_pro_daily where ts_code = '" + code[
+            0] + "' and trade_date <= '" + date + "' order by trade_date desc LIMIT 126").fetchall())
+        df.columns = ['date', 'close']
+        df['code'] = code[0]
+        df = df.reindex(index=df.index[::-1])
+        df['diff'], df['dea'], df['macd'] = MACD(df['close'].values, fastperiod=12, slowperiod=26, signalperiod=9)
+        df=df.drop(['close'], axis=1)
+        df['diff']=df['diff'].map(lambda x:round(x,4))
+        df['dea'] = df['dea'].map(lambda x: round(x, 4))
+        df['macd'] = df['macd'].map(lambda x: round(x, 4))
+        df=df[df['date']==date]
+        print(df)
+        #df.ix[:0].to_sql('t_kline', c.ENGINE, if_exists='append')
+        df.to_sql('t_macd', c.ENGINE, if_exists='append')
 
+'''
+均线支撑：
+两种情况：
+1、上升通道
+2、下降通道
+'''
 
-# def get_dbl(date):
-#     df =pd.DataFrame(hq._excutesql("select trade_date,high,low,close from t_pro_daily where ts_code = '300758' order by trade_date desc LIMIT 120").fetchall())
-#     df.columns=['date','high','low','close']
-#     df['code'] = '600567'
-#     df=df.reindex(index=df.index[::-1])
-#     df['diff'], df['dea'], df['macd'] = MACD(df['close'].values,fastperiod=12, slowperiod=26, signalperiod=9)
-#     df['junction']=df['diff']/df['dea']
-#     low_min = df.groupby(['code'])['low'].min()
-#     diff_min = df.groupby(['code'])['diff'].min()
-#     df['diff_v'] = df['diff']-df['diff'].shift(1)
-#     df_tmp = df[(df['junction']<0.99) & (df['junction']>0.95) & (df['diff_v']>0)]
-#     df_tmp['diff_v1'] = df_tmp['diff'] - df_tmp['diff'].shift(1)
-#     df_tmp['dea_v1'] = df_tmp['dea'] - df_tmp['dea'].shift(1)
-#     df_tmp['low_v1'] = df_tmp['low'] - df_tmp['low'].shift(1)
-#     df_tmp['diff_v2'] = df_tmp['diff'].shift(1) - df_tmp['diff'].shift(2)
-#     df_tmp['dea_v2'] = df_tmp['dea'].shift(1) - df_tmp['dea'].shift(2)
-#     df_tmp['low_v2'] = df_tmp['low'].shift(1) - df_tmp['low'].shift(2)
-#     df_tmp['low_v2'] = df_tmp['low'].shift(1) - df_tmp['low'].shift(2)
-#     df_tmp['low_v1'] = df_tmp['low'] - df_tmp['low'].shift(1)
-#     df_tmp['low_v2'] = df_tmp['low'].shift(1) - df_tmp['low'].shift(2)
-#     print(df)
-#     df_final = df_tmp[(df_tmp['diff_v1'] > 0) & (df_tmp['dea_v1'] > 0) & (df_tmp['low_v1'] < 0) & (df_tmp['diff_v2'] > 0) & (df_tmp['dea_v2'] > 0) & (df_tmp['low_v2'] < 0) & (df_tmp['low_v1']<0) & (df_tmp['low_v2']<0)]
-#     print(df_tmp)
-#     # if(df_tmp[(df_tmp['diff_v']>0) & (df_tmp['dea_v']>0) & (df_tmp['low_v']<0)].index.min()<df[df['low']==low_min[0]].index[0]):
-#     #     print(1)
+'''低吸
+--5日线依次大于10,20,30（是否限制几条线之间的距离）
+--最低价大于5日线
+--收盘价上升
+--不能是近期高点
+--MACD不能粘合以及须向上，大于0轴
+--不能顶背离
+--要在中高位
+--次日最高价要超过5日线，注意不能是钓鱼线
+--注意成交量
+---需要确定周期
+
+'''
